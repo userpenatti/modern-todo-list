@@ -38,31 +38,37 @@ export default function TodoList({ userId }: { userId: string }) {
     applyFilters()
   }, [todos, filter])
 
+  useEffect(() => {
+    const subscription = supabase
+      .channel('todos_changes')
+      .on('postgres_changes', { 
+        event: '*', 
+        schema: 'public', 
+        table: 'todos' 
+      }, () => {
+        fetchTodos()
+      })
+      .subscribe()
+
+    return () => {
+      subscription.unsubscribe()
+    }
+  }, [userId])
+
   const fetchTodos = async () => {
     try {
-      // Buscar tarefas
+      // Buscar tarefas com subtarefas em uma única query
       const { data: todos, error: todosError } = await supabase
         .from("todos")
-        .select("*")
+        .select(`
+          *,
+          subtasks (*)
+        `)
         .eq("user_id", userId)
 
       if (todosError) throw todosError
 
-      // Buscar subtarefas para cada tarefa
-      const { data: subtasks, error: subtasksError } = await supabase
-        .from("subtasks")
-        .select("*")
-        .eq("user_id", userId)
-
-      if (subtasksError) throw subtasksError
-
-      // Combinar tarefas com suas subtarefas
-      const todosWithSubtasks = todos.map(todo => ({
-        ...todo,
-        subtasks: subtasks.filter(st => st.todo_id === todo.id)
-      }))
-
-      setTodos(todosWithSubtasks)
+      setTodos(todos || [])
     } catch (error) {
       console.error("Error fetching todos:", error)
     }
@@ -104,15 +110,30 @@ export default function TodoList({ userId }: { userId: string }) {
   }
 
   const updateTodo = async (updatedTodo: Todo) => {
-    const { data, error } = await supabase
-      .from("todos")
-      .update(updatedTodo)
-      .eq("id", updatedTodo.id)
-      .eq("user_id", userId)
-    if (error) {
+    try {
+      const { error } = await supabase
+        .from("todos")
+        .update({
+          title: updatedTodo.title,
+          description: updatedTodo.description,
+          category: updatedTodo.category,
+          priority: updatedTodo.priority,
+          dueDate: updatedTodo.dueDate,
+          completed: updatedTodo.completed,
+          status: updatedTodo.status
+        })
+        .eq("id", updatedTodo.id)
+        .eq("user_id", userId)
+
+      if (error) throw error
+
+      setTodos(todos.map((todo) => 
+        todo.id === updatedTodo.id 
+          ? { ...todo, ...updatedTodo }
+          : todo
+      ))
+    } catch (error) {
       console.error("Error updating todo:", error)
-    } else {
-      setTodos(todos.map((todo) => (todo.id === updatedTodo.id ? updatedTodo : todo)))
     }
   }
 

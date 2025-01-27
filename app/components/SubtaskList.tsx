@@ -19,46 +19,48 @@ export default function SubtaskList({ todoId, userId, subtasks, onSubtasksChange
   const addSubtask = async () => {
     if (!newSubtask.trim()) return
 
-    const newSubtaskData = {
-      todo_id: todoId,
-      title: newSubtask.trim(),
-      completed: false,
-      user_id: userId
-    }
+    try {
+      const newSubtaskData = {
+        todo_id: todoId,
+        title: newSubtask.trim(),
+        completed: false,
+        user_id: userId
+      }
 
-    const { data, error } = await supabase
-      .from("subtasks")
-      .insert([newSubtaskData])
-      .select()
-      .single()
+      const { data, error } = await supabase
+        .from("subtasks")
+        .insert([newSubtaskData])
+        .select()
+        .single()
 
-    if (error) {
+      if (error) throw error
+
+      onSubtasksChange([...subtasks, data])
+      setNewSubtask("")
+    } catch (error) {
       console.error("Error adding subtask:", error)
-      return
     }
-
-    onSubtasksChange([...subtasks, data])
-    setNewSubtask("")
   }
 
   const toggleSubtask = async (subtask: Subtask) => {
-    const { error } = await supabase
-      .from("subtasks")
-      .update({ completed: !subtask.completed })
-      .eq("id", subtask.id)
+    try {
+      const { error } = await supabase
+        .from("subtasks")
+        .update({ completed: !subtask.completed })
+        .eq("id", subtask.id)
 
-    if (error) {
-      console.error("Error updating subtask:", error)
-      return
-    }
+      if (error) throw error
 
-    onSubtasksChange(
-      subtasks.map(st => 
-        st.id === subtask.id 
-          ? { ...st, completed: !st.completed }
-          : st
+      onSubtasksChange(
+        subtasks.map(st => 
+          st.id === subtask.id 
+            ? { ...st, completed: !st.completed }
+            : st
+        )
       )
-    )
+    } catch (error) {
+      console.error("Error updating subtask:", error)
+    }
   }
 
   const deleteSubtask = async (id: string) => {

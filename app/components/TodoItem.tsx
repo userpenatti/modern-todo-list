@@ -2,12 +2,13 @@ import { useState } from "react"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Button } from "@/components/ui/button"
 import { Trash2, Edit, ChevronDown, ChevronUp } from "lucide-react"
-import type { Todo } from "../types/todo"
+import type { Todo, Status } from "../types/todo"
 import { Badge } from "@/components/ui/badge"
 import { format } from "date-fns"
 import strings from "../constants/strings"
 import EditTodoModal from "./EditTodoModal"
 import SubtaskList from "./SubtaskList"
+import { supabase } from "../lib/supabase"
 
 interface TodoItemProps {
   todo: Todo
@@ -19,8 +20,31 @@ export default function TodoItem({ todo, updateTodo, deleteTodo }: TodoItemProps
   const [isExpanded, setIsExpanded] = useState(false)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
 
-  const toggleComplete = () => {
-    updateTodo({ ...todo, completed: !todo.completed, status: !todo.completed ? "done" : "todo" })
+  const toggleComplete = async () => {
+    try {
+      const newStatus: Status = !todo.completed ? "done" : "todo"
+      const updatedTodo = { 
+        ...todo, 
+        completed: !todo.completed, 
+        status: newStatus
+      }
+      
+      // Primeiro atualiza no banco
+      const { error } = await supabase
+        .from("todos")
+        .update({ 
+          completed: updatedTodo.completed,
+          status: updatedTodo.status
+        })
+        .eq("id", todo.id)
+      
+      if (error) throw error
+
+      // Se sucesso, atualiza na UI
+      updateTodo(updatedTodo)
+    } catch (error) {
+      console.error("Error toggling todo:", error)
+    }
   }
 
   const getPriorityColor = (priority: string) => {
