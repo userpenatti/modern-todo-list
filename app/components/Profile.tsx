@@ -3,62 +3,93 @@ import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Skeleton } from "@/components/ui/skeleton"
 import strings from "../constants/strings"
 import { getCurrentUser, signOut, supabase } from "../lib/supabase"
 
 export default function Profile() {
   const [user, setUser] = useState<any>(null)
-  const [profile, setProfile] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
   const router = useRouter()
 
   useEffect(() => {
     const fetchUserAndProfile = async () => {
-      const currentUser = await getCurrentUser()
-      if (currentUser) {
-        setUser(currentUser)
-        const { data, error } = await supabase.from("profiles").select("*").eq("id", currentUser.id).single()
-        if (data) setProfile(data)
-      } else {
-        router.push("/login")
+      try {
+        const currentUser = await getCurrentUser()
+        if (currentUser) {
+          setUser(currentUser)
+        } else {
+          router.push("/login")
+        }
+      } catch (error) {
+        console.error("Error fetching user:", error)
+      } finally {
+        setLoading(false)
       }
     }
+
     fetchUserAndProfile()
   }, [router])
 
   const handleSignOut = async () => {
-    const { error } = await signOut()
-    if (!error) {
-      router.push("/login")
-    }
+    await signOut()
+    router.push("/login")
   }
 
-  if (!user || !profile) {
-    return <div>Loading...</div>
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-purple-100 to-purple-300">
+        <Card className="w-full max-w-md">
+          <CardHeader>
+            <CardTitle>{strings.profile.title}</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Skeleton className="h-4 w-3/4" />
+            <Skeleton className="h-4 w-1/2" />
+            <Skeleton className="h-4 w-2/3" />
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
+  if (!user) {
+    return null
   }
 
   return (
-    <Card className="w-[350px]">
-      <CardHeader>
-        <CardTitle>{strings.profile.title}</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <p>
-          <strong>{strings.profile.email}:</strong> {user.email}
-        </p>
-        <p>
-          <strong>{strings.profile.name}:</strong> {profile.full_name || "N/A"}
-        </p>
-        <p>
-          <strong>{strings.profile.username}:</strong> {profile.username || "N/A"}
-        </p>
-        <p>
-          <strong>{strings.profile.website}:</strong> {profile.website || "N/A"}
-        </p>
-      </CardContent>
-      <CardFooter>
-        <Button onClick={handleSignOut}>{strings.auth.logout}</Button>
-      </CardFooter>
-    </Card>
+    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-purple-100 to-purple-300">
+      <Card className="w-full max-w-md">
+        <CardHeader>
+          <CardTitle>{strings.profile.title}</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <strong>{strings.profile.email}:</strong> {user.email}
+          </div>
+          {user.user_metadata?.full_name && (
+            <div>
+              <strong>{strings.profile.name}:</strong> {user.user_metadata.full_name}
+            </div>
+          )}
+          <div>
+            <strong>ID:</strong> {user.id}
+          </div>
+          <div>
+            <strong>Último login:</strong>{" "}
+            {new Date(user.last_sign_in_at).toLocaleString()}
+          </div>
+        </CardContent>
+        <CardFooter className="flex justify-between">
+          <Button variant="outline" onClick={() => router.push("/")}>
+            Voltar
+          </Button>
+          <Button variant="destructive" onClick={handleSignOut}>
+            {strings.auth.logout}
+          </Button>
+        </CardFooter>
+      </Card>
+    </div>
   )
 }
 

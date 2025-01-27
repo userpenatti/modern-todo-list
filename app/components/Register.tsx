@@ -35,7 +35,7 @@ export default function Register() {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-purple-100 to-purple-300 p-4">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br p-4">
       <div className="flex flex-col items-center mb-8">
         <CheckSquare className="h-16 w-16 text-purple-600 mb-4" />
         <h1 className="text-3xl font-bold text-gray-800">{strings.app.titulo}</h1>
