@@ -3,14 +3,17 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import TodoItem from "./TodoItem"
 import type { Todo } from "../types/todo"
 import strings from "../constants/strings"
+import { Plus } from "lucide-react"
+import { Button } from "@/components/ui/button"
 
 interface KanbanBoardProps {
   todos: Todo[]
   updateTodo: (todo: Todo) => void
   deleteTodo: (id: string) => void
+  onAddTodo: () => void
 }
 
-export default function KanbanBoard({ todos, updateTodo, deleteTodo }: KanbanBoardProps) {
+export default function KanbanBoard({ todos, updateTodo, deleteTodo, onAddTodo }: KanbanBoardProps) {
   const columns = [
     { id: "todo", title: strings.kanban.aFazer },
     { id: "inProgress", title: strings.kanban.emAndamento },
@@ -52,8 +55,13 @@ export default function KanbanBoard({ todos, updateTodo, deleteTodo }: KanbanBoa
         {columns.map((column) => (
           <div key={column.id} className="flex-1 min-w-[300px]">
             <Card>
-              <CardHeader>
+              <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle>{column.title}</CardTitle>
+                {(column.id === "todo" || column.id === "inProgress") && (
+                  <Button variant="ghost" size="icon" onClick={onAddTodo}>
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                )}
               </CardHeader>
               <Droppable droppableId={column.id}>
                 {(provided) => (

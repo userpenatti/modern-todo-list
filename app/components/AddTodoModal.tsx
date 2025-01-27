@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import type { Todo, Category, Priority } from "../types/todo"
 import strings from "../constants/strings"
+import { format } from "date-fns"
 
 interface AddTodoModalProps {
   isOpen: boolean
@@ -21,31 +22,55 @@ export default function AddTodoModal({ isOpen, onClose, addTodo }: AddTodoModalP
   const [category, setCategory] = useState<Category>("work")
   const [priority, setPriority] = useState<Priority>("medium")
   const [dueDate, setDueDate] = useState("")
+  const [dueTime, setDueTime] = useState("")
+  const [notifyBefore, setNotifyBefore] = useState("30")
   const [showError, setShowError] = useState(false)
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    if (!dueDate) {
+    if (!dueDate || !dueTime) {
       setShowError(true)
       return
     }
+
+    const dueDatetime = new Date(`${dueDate}T${dueTime}`)
     
+    // Solicitar permissão para notificações
+    if (Notification.permission !== "granted") {
+      await Notification.requestPermission()
+    }
+
+    // Agendar notificação
+    const notifyTime = new Date(dueDatetime.getTime() - parseInt(notifyBefore) * 60000)
+    if (notifyTime > new Date()) {
+      setTimeout(() => {
+        new Notification("Lembrete de Tarefa", {
+          body: `A tarefa "${title}" vence em ${notifyBefore} minutos!`,
+          icon: "/icon.png" // Adicione um ícone para sua aplicação
+        })
+        // Tocar um som de notificação
+        new Audio("/notification.mp3").play() // Adicione um som de notificação
+      }, notifyTime.getTime() - new Date().getTime())
+    }
+
     addTodo({
       title,
       description,
       category,
       priority,
-      dueDate,
+      dueDate: dueDatetime.toISOString(),
       completed: false,
       createdAt: new Date().toISOString(),
       status: "todo",
     })
+    
     setTitle("")
     setDescription("")
     setCategory("personal")
     setPriority("medium")
     setDueDate("")
+    setDueTime("")
     setShowError(false)
   }
 
@@ -95,17 +120,43 @@ export default function AddTodoModal({ isOpen, onClose, addTodo }: AddTodoModalP
               <SelectItem value="high">{strings.prioridades.alta}</SelectItem>
             </SelectContent>
           </Select>
-          <Input
-            type="date"
-            value={dueDate}
-            onChange={(e) => {
-              setDueDate(e.target.value)
-              setShowError(false)
-            }}
-            placeholder={strings.tarefa.dataVencimento}
-            className={showError ? "border-red-500" : ""}
-            required
-          />
+          <div className="flex gap-4">
+            <div className="flex-1">
+              <Input
+                type="date"
+                value={dueDate}
+                onChange={(e) => {
+                  setDueDate(e.target.value)
+                  setShowError(false)
+                }}
+                className={showError ? "border-red-500" : ""}
+                required
+              />
+            </div>
+            <div className="flex-1">
+              <Input
+                type="time"
+                value={dueTime}
+                onChange={(e) => {
+                  setDueTime(e.target.value)
+                  setShowError(false)
+                }}
+                className={showError ? "border-red-500" : ""}
+                required
+              />
+            </div>
+          </div>
+          <Select value={notifyBefore} onValueChange={setNotifyBefore}>
+            <SelectTrigger>
+              <SelectValue placeholder="Notificar antes" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="15">15 minutos antes</SelectItem>
+              <SelectItem value="30">30 minutos antes</SelectItem>
+              <SelectItem value="60">1 hora antes</SelectItem>
+              <SelectItem value="1440">1 dia antes</SelectItem>
+            </SelectContent>
+          </Select>
           <Button type="submit">{strings.app.adicionarTarefa}</Button>
         </form>
       </DialogContent>

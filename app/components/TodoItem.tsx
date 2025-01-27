@@ -40,13 +40,14 @@ export default function TodoItem({ todo, updateTodo, deleteTodo }: TodoItemProps
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-2">
           <Checkbox checked={todo.completed} onCheckedChange={toggleComplete} />
-          <span className={`font-medium ${todo.completed ? "line-through text-gray-500" : ""}`}>{todo.title}</span>
-        </div>
-        <div className="flex items-center space-x-2">
+          <span className={`font-medium ${todo.completed ? "line-through text-gray-500" : ""}`}>
+            {todo.title}
+          </span>
           <Badge className={getPriorityColor(todo.priority)}>
             {strings.prioridades[todo.priority as keyof typeof strings.prioridades]}
           </Badge>
-          <Badge variant="outline">{strings.categorias[todo.category as keyof typeof strings.categorias]}</Badge>
+        </div>
+        <div className="flex items-center space-x-2">
           <Button variant="ghost" size="icon" onClick={() => setIsExpanded(!isExpanded)}>
             {isExpanded ? <ChevronUp /> : <ChevronDown />}
           </Button>

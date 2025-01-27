@@ -8,10 +8,11 @@ export interface Todo {
   description: string
   category: Category
   priority: Priority
-  dueDate?: string
+  dueDate: string
   completed: boolean
   createdAt: string
   status: Status
   user_id: string
+  notifyBefore?: number
 }
 

@@ -130,7 +130,12 @@ export default function TodoList({ userId }: { userId: string }) {
               </Card>
             </div>
           ) : (
-            <KanbanBoard todos={filteredTodos} updateTodo={updateTodo} deleteTodo={deleteTodo} />
+            <KanbanBoard 
+              todos={filteredTodos} 
+              updateTodo={updateTodo} 
+              deleteTodo={deleteTodo}
+              onAddTodo={() => setIsAddModalOpen(true)}
+            />
           )}
         </div>
 
