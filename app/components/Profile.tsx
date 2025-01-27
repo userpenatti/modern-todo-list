@@ -58,7 +58,7 @@ export default function Profile() {
   }
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-purple-100 to-purple-300">
+    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br">
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle>{strings.profile.title}</CardTitle>

@@ -13,6 +13,8 @@ import type { Todo } from "../types/todo"
 import strings from "../constants/strings"
 import { supabase } from "../lib/supabase"
 import { useRouter } from "next/navigation"
+import ProfileModal from "./ProfileModal"
+import { useAuth } from "../context/AuthContext"
 
 export default function TodoList({ userId }: { userId: string }) {
   const [todos, setTodos] = useState<Todo[]>([])
@@ -25,6 +27,8 @@ export default function TodoList({ userId }: { userId: string }) {
   })
   const [view, setView] = useState<"list" | "kanban">("list")
   const router = useRouter()
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false)
+  const { user, loading } = useAuth()
 
   useEffect(() => {
     fetchTodos()
@@ -35,11 +39,32 @@ export default function TodoList({ userId }: { userId: string }) {
   }, [todos, filter])
 
   const fetchTodos = async () => {
-    const { data, error } = await supabase.from("todos").select("*").eq("user_id", userId)
-    if (error) {
+    try {
+      // Buscar tarefas
+      const { data: todos, error: todosError } = await supabase
+        .from("todos")
+        .select("*")
+        .eq("user_id", userId)
+
+      if (todosError) throw todosError
+
+      // Buscar subtarefas para cada tarefa
+      const { data: subtasks, error: subtasksError } = await supabase
+        .from("subtasks")
+        .select("*")
+        .eq("user_id", userId)
+
+      if (subtasksError) throw subtasksError
+
+      // Combinar tarefas com suas subtarefas
+      const todosWithSubtasks = todos.map(todo => ({
+        ...todo,
+        subtasks: subtasks.filter(st => st.todo_id === todo.id)
+      }))
+
+      setTodos(todosWithSubtasks)
+    } catch (error) {
       console.error("Error fetching todos:", error)
-    } else {
-      setTodos(data || [])
     }
   }
 
@@ -119,7 +144,7 @@ export default function TodoList({ userId }: { userId: string }) {
               <Button 
                 variant="outline" 
                 size="icon" 
-                onClick={() => router.push('/profile')} 
+                onClick={() => setIsProfileModalOpen(true)}
                 title={strings.profile.title}
               >
                 <User className="h-4 w-4" />
@@ -150,6 +175,12 @@ export default function TodoList({ userId }: { userId: string }) {
         </div>
 
         <AddTodoModal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} addTodo={addTodo} />
+        <ProfileModal 
+          isOpen={isProfileModalOpen} 
+          onClose={() => setIsProfileModalOpen(false)}
+          user={user}
+          loading={loading}
+        />
       </div>
     </div>
   )

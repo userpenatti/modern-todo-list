@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { format } from "date-fns"
 import strings from "../constants/strings"
 import EditTodoModal from "./EditTodoModal"
+import SubtaskList from "./SubtaskList"
 
 interface TodoItemProps {
   todo: Todo
@@ -64,9 +65,20 @@ export default function TodoItem({ todo, updateTodo, deleteTodo }: TodoItemProps
           <p>{todo.description}</p>
           {todo.dueDate && (
             <p className="mt-1">
-              {strings.tarefa.dataVencimento}: {format(new Date(todo.dueDate), "dd/MM/yyyy")}
+              <strong>Prazo:</strong> {format(new Date(todo.dueDate), "dd/MM/yyyy HH:mm")}
             </p>
           )}
+          <div className="mt-4">
+            <h4 className="font-medium mb-2">Subtarefas</h4>
+            <SubtaskList
+              todoId={todo.id}
+              userId={todo.user_id}
+              subtasks={todo.subtasks || []}
+              onSubtasksChange={(subtasks) => 
+                updateTodo({ ...todo, subtasks })
+              }
+            />
+          </div>
         </div>
       )}
       <EditTodoModal

@@ -1,5 +1,5 @@
 // AddTodoModal.tsx
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -26,6 +26,48 @@ export default function AddTodoModal({ isOpen, onClose, addTodo }: AddTodoModalP
   const [notifyBefore, setNotifyBefore] = useState("30")
   const [showError, setShowError] = useState(false)
 
+  const scheduleNotification = async (title: string, dueDate: Date, notifyMinutes: number) => {
+    if (!("Notification" in window)) {
+      console.log("Este navegador não suporta notificações desktop")
+      return
+    }
+
+    try {
+      const permission = await Notification.requestPermission()
+      if (permission !== "granted") return
+
+      const notifyTime = new Date(dueDate.getTime() - notifyMinutes * 60000)
+      const now = new Date()
+
+      if (notifyTime > now) {
+        const timeoutId = setTimeout(async () => {
+          try {
+            // Criar notificação
+            const notification = new Notification("Lembrete de Tarefa", {
+              body: `A tarefa "${title}" vence em ${notifyMinutes} ${notifyMinutes === 1 ? 'minuto' : 'minutos'}!`,
+              icon: "/icon.png",
+              silent: true // Desabilita o som padrão do navegador
+            })
+
+            // Tocar som personalizado
+            const audio = new Audio("/notification.mp3")
+            await audio.play()
+
+            // Registrar no console para debug
+            console.log(`Notificação enviada para tarefa "${title}" - ${new Date().toLocaleString()}`)
+          } catch (error) {
+            console.error("Erro ao enviar notificação:", error)
+          }
+        }, notifyTime.getTime() - now.getTime())
+
+        // Armazenar o ID do timeout para possível cancelamento futuro
+        return timeoutId
+      }
+    } catch (error) {
+      console.error("Erro ao agendar notificação:", error)
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
@@ -36,23 +78,19 @@ export default function AddTodoModal({ isOpen, onClose, addTodo }: AddTodoModalP
 
     const dueDatetime = new Date(`${dueDate}T${dueTime}`)
     
-    // Solicitar permissão para notificações
-    if (Notification.permission !== "granted") {
-      await Notification.requestPermission()
-    }
+    // Agendar múltiplas notificações
+    const notifyTimes = [1, 15, 30, 60, 1440] // 1min, 15min, 30min, 1h, 1dia
+    const timeoutIds = await Promise.all(
+      notifyTimes.map(minutes => scheduleNotification(title, dueDatetime, minutes))
+    )
 
-    // Agendar notificação
-    const notifyTime = new Date(dueDatetime.getTime() - parseInt(notifyBefore) * 60000)
-    if (notifyTime > new Date()) {
-      setTimeout(() => {
-        new Notification("Lembrete de Tarefa", {
-          body: `A tarefa "${title}" vence em ${notifyBefore} minutos!`,
-          icon: "/icon.png" // Adicione um ícone para sua aplicação
-        })
-        // Tocar um som de notificação
-        new Audio("/notification.mp3").play() // Adicione um som de notificação
-      }, notifyTime.getTime() - new Date().getTime())
+    // Armazenar os IDs dos timeouts no localStorage para persistência
+    const storedNotifications = JSON.parse(localStorage.getItem('taskNotifications') || '{}')
+    storedNotifications[title] = {
+      timeoutIds,
+      dueDate: dueDatetime.toISOString()
     }
+    localStorage.setItem('taskNotifications', JSON.stringify(storedNotifications))
 
     addTodo({
       title,
@@ -73,6 +111,28 @@ export default function AddTodoModal({ isOpen, onClose, addTodo }: AddTodoModalP
     setDueTime("")
     setShowError(false)
   }
+
+  useEffect(() => {
+    // Verificar permissão de notificação ao montar o componente
+    if ("Notification" in window) {
+      Notification.requestPermission()
+    }
+
+    // Verificar notificações armazenadas
+    const storedNotifications = JSON.parse(localStorage.getItem('taskNotifications') || '{}')
+    const now = new Date()
+
+    Object.entries(storedNotifications).forEach(([title, data]: [string, any]) => {
+      const dueDate = new Date(data.dueDate)
+      if (dueDate > now) {
+        // Reagendar notificações para tarefas ainda não vencidas
+        const notifyTimes = [1, 15, 30, 60, 1440]
+        notifyTimes.forEach(minutes => {
+          scheduleNotification(title, dueDate, minutes)
+        })
+      }
+    })
+  }, [])
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -151,6 +211,7 @@ export default function AddTodoModal({ isOpen, onClose, addTodo }: AddTodoModalP
               <SelectValue placeholder="Notificar antes" />
             </SelectTrigger>
             <SelectContent>
+              <SelectItem value="1">1 minuto antes</SelectItem>
               <SelectItem value="15">15 minutos antes</SelectItem>
               <SelectItem value="30">30 minutos antes</SelectItem>
               <SelectItem value="60">1 hora antes</SelectItem>
