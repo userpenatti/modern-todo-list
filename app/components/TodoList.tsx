@@ -16,6 +16,7 @@ import { useRouter } from "next/navigation"
 import ProfileModal from "./ProfileModal"
 import { useAuth } from "../context/AuthContext"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { useNotifications } from '../hooks/useNotifications'
 
 export default function TodoList({ userId }: { userId: string }) {
   const [todos, setTodos] = useState<Todo[]>([])
@@ -74,6 +75,8 @@ export default function TodoList({ userId }: { userId: string }) {
 
     fetchUserAvatar()
   }, [user])
+
+  useNotifications(todos)
 
   const fetchTodos = async () => {
     try {

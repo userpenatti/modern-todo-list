@@ -9,6 +9,7 @@ import strings from "../constants/strings"
 import EditTodoModal from "./EditTodoModal"
 import SubtaskList from "./SubtaskList"
 import { supabase } from "../lib/supabase"
+import { NotificationService } from '../services/NotificationService'
 
 interface TodoItemProps {
   todo: Todo
@@ -39,6 +40,11 @@ export default function TodoItem({ todo, updateTodo, deleteTodo }: TodoItemProps
         .eq("id", todo.id)
       
       if (error) throw error
+
+      // Se estiver marcando como concluído, toca o som
+      if (updatedTodo.completed) {
+        NotificationService.playSound('complete')
+      }
 
       // Se sucesso, atualiza na UI
       updateTodo(updatedTodo)
