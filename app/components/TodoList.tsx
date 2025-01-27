@@ -15,6 +15,7 @@ import { supabase } from "../lib/supabase"
 import { useRouter } from "next/navigation"
 import ProfileModal from "./ProfileModal"
 import { useAuth } from "../context/AuthContext"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
 export default function TodoList({ userId }: { userId: string }) {
   const [todos, setTodos] = useState<Todo[]>([])
@@ -29,6 +30,7 @@ export default function TodoList({ userId }: { userId: string }) {
   const router = useRouter()
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false)
   const { user, loading } = useAuth()
+  const [userAvatar, setUserAvatar] = useState<string | null>(null)
 
   useEffect(() => {
     fetchTodos()
@@ -54,6 +56,24 @@ export default function TodoList({ userId }: { userId: string }) {
       subscription.unsubscribe()
     }
   }, [userId])
+
+  useEffect(() => {
+    const fetchUserAvatar = async () => {
+      if (!user?.id) return
+      
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('avatar_url')
+        .eq('user_id', user.id)
+        .single()
+
+      if (data?.avatar_url) {
+        setUserAvatar(data.avatar_url)
+      }
+    }
+
+    fetchUserAvatar()
+  }, [user])
 
   const fetchTodos = async () => {
     try {
@@ -163,12 +183,18 @@ export default function TodoList({ userId }: { userId: string }) {
                 <Plus className="mr-2 h-4 w-4" /> {strings.app.adicionarTarefa}
               </Button>
               <Button 
-                variant="outline" 
+                variant="ghost" 
                 size="icon" 
                 onClick={() => setIsProfileModalOpen(true)}
                 title={strings.profile.title}
+                className="p-0 h-8 w-8"
               >
-                <User className="h-4 w-4" />
+                <Avatar className="h-8 w-8">
+                  <AvatarImage src={userAvatar || ""} />
+                  <AvatarFallback>
+                    <User className="h-4 w-4" />
+                  </AvatarFallback>
+                </Avatar>
               </Button>
             </div>
           </div>

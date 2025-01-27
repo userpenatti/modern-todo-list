@@ -37,31 +37,63 @@ export default function ProfileModal({ isOpen, onClose, user, loading }: Profile
   const [error, setError] = useState("")
   const [success, setSuccess] = useState("")
   const [avatarFile, setAvatarFile] = useState<File | null>(null)
+  const [loadingProfile, setLoadingProfile] = useState(true)
 
   useEffect(() => {
-    if (user) {
+    if (user?.id) {
       fetchProfile()
     }
-  }, [user])
+  }, [user?.id])
 
   const fetchProfile = async () => {
     try {
+      setLoadingProfile(true)
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('user_id', user.id)
         .single()
 
-      if (error) throw error
+      if (error && error.code !== 'PGRST116') { // Ignora erro de não encontrado
+        throw error
+      }
 
-      setProfileData({
-        username: data.username || user.email,
-        full_name: data.full_name || "",
-        website: data.website || "",
-        avatar_url: data.avatar_url || ""
-      })
+      // Se não encontrou perfil, cria um novo
+      if (!data) {
+        const newProfile = {
+          user_id: user.id,
+          username: user.email,
+          full_name: "",
+          website: "",
+          avatar_url: "",
+          updated_at: new Date().toISOString()
+        }
+
+        const { error: insertError } = await supabase
+          .from('profiles')
+          .insert([newProfile])
+
+        if (insertError) throw insertError
+
+        setProfileData({
+          username: user.email,
+          full_name: "",
+          website: "",
+          avatar_url: ""
+        })
+      } else {
+        setProfileData({
+          username: data.username || user.email,
+          full_name: data.full_name || "",
+          website: data.website || "",
+          avatar_url: data.avatar_url || ""
+        })
+      }
     } catch (error) {
       console.error("Error fetching profile:", error)
+      setError("Erro ao carregar perfil")
+    } finally {
+      setLoadingProfile(false)
     }
   }
 
@@ -144,7 +176,7 @@ export default function ProfileModal({ isOpen, onClose, user, loading }: Profile
     router.push("/login")
   }
 
-  if (loading) {
+  if (loading || loadingProfile) {
     return (
       <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent>

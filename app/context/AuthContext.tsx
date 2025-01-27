@@ -21,36 +21,42 @@ const AuthContext = createContext<{
   loading: true,
 })
 
-export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null)
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const [user, setUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
-  const router = useRouter()
 
   useEffect(() => {
-    const checkUser = async () => {
-      const currentUser = await getCurrentUser()
-      setUser(currentUser)
-      setLoading(false)
+    // Buscar usuário atual
+    const getCurrentUser = async () => {
+      try {
+        const { data: { user }, error } = await supabase.auth.getUser()
+        setUser(user)
+        if (error) throw error
+      } catch (error) {
+        console.error('Error:', error)
+      } finally {
+        setLoading(false)
+      }
     }
 
-    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === "SIGNED_IN") {
-        setUser(session?.user ?? null)
-        router.push("/")
-      } else if (event === "SIGNED_OUT") {
-        setUser(null)
-        router.push("/login")
-      }
+    getCurrentUser()
+
+    // Escutar mudanças na autenticação
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null)
+      setLoading(false)
     })
 
-    checkUser()
-
     return () => {
-      authListener.subscription.unsubscribe()
+      subscription.unsubscribe()
     }
-  }, [router])
+  }, [])
 
-  return <AuthContext.Provider value={{ user, loading }}>{children}</AuthContext.Provider>
+  return (
+    <AuthContext.Provider value={{ user, loading }}>
+      {children}
+    </AuthContext.Provider>
+  )
 }
 
 export const useAuth = () => useContext(AuthContext)
