@@ -40,48 +40,27 @@ export default function ProfileModal({ isOpen, onClose, user, loading }: Profile
   const [loadingProfile, setLoadingProfile] = useState(true)
 
   useEffect(() => {
-    if (user?.id) {
+    if (user?.id && isOpen) {
       fetchProfile()
     }
-  }, [user?.id])
+  }, [user?.id, isOpen])
 
   const fetchProfile = async () => {
     try {
       setLoadingProfile(true)
+      setError("")
+
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('user_id', user.id)
         .single()
 
-      if (error && error.code !== 'PGRST116') { // Ignora erro de não encontrado
+      if (error) {
         throw error
       }
 
-      // Se não encontrou perfil, cria um novo
-      if (!data) {
-        const newProfile = {
-          user_id: user.id,
-          username: user.email,
-          full_name: "",
-          website: "",
-          avatar_url: "",
-          updated_at: new Date().toISOString()
-        }
-
-        const { error: insertError } = await supabase
-          .from('profiles')
-          .insert([newProfile])
-
-        if (insertError) throw insertError
-
-        setProfileData({
-          username: user.email,
-          full_name: "",
-          website: "",
-          avatar_url: ""
-        })
-      } else {
+      if (data) {
         setProfileData({
           username: data.username || user.email,
           full_name: data.full_name || "",
@@ -89,9 +68,9 @@ export default function ProfileModal({ isOpen, onClose, user, loading }: Profile
           avatar_url: data.avatar_url || ""
         })
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error fetching profile:", error)
-      setError("Erro ao carregar perfil")
+      setError("Erro ao carregar perfil: " + error.message)
     } finally {
       setLoadingProfile(false)
     }
@@ -101,6 +80,11 @@ export default function ProfileModal({ isOpen, onClose, user, loading }: Profile
     if (!e.target.files || !e.target.files[0]) return
 
     const file = e.target.files[0]
+    if (file.size > 2 * 1024 * 1024) { // 2MB limit
+      setError("Arquivo muito grande. Máximo de 2MB.")
+      return
+    }
+
     setAvatarFile(file)
 
     // Preview imediato
@@ -114,13 +98,17 @@ export default function ProfileModal({ isOpen, onClose, user, loading }: Profile
   const uploadAvatar = async (userId: string): Promise<string | null> => {
     if (!avatarFile) return null
 
-    const fileExt = avatarFile.name.split('.').pop()
-    const filePath = `${userId}/avatar.${fileExt}`
-
     try {
+      const fileExt = avatarFile.name.split('.').pop()
+      const fileName = `${userId}-${Date.now()}.${fileExt}`
+      const filePath = `${userId}/${fileName}`
+
       const { error: uploadError } = await supabase.storage
         .from('avatars')
-        .upload(filePath, avatarFile, { upsert: true })
+        .upload(filePath, avatarFile, { 
+          cacheControl: '3600',
+          upsert: true 
+        })
 
       if (uploadError) throw uploadError
 
@@ -131,7 +119,7 @@ export default function ProfileModal({ isOpen, onClose, user, loading }: Profile
       return data.publicUrl
     } catch (error) {
       console.error("Error uploading avatar:", error)
-      return null
+      throw error
     }
   }
 
@@ -144,8 +132,7 @@ export default function ProfileModal({ isOpen, onClose, user, loading }: Profile
     try {
       let avatarUrl = profileData.avatar_url
       if (avatarFile) {
-        const newAvatarUrl = await uploadAvatar(user.id)
-        if (newAvatarUrl) avatarUrl = newAvatarUrl
+        avatarUrl = await uploadAvatar(user.id) || avatarUrl
       }
 
       const updates = {
@@ -159,11 +146,14 @@ export default function ProfileModal({ isOpen, onClose, user, loading }: Profile
 
       const { error } = await supabase
         .from('profiles')
-        .upsert(updates)
+        .upsert(updates, {
+          onConflict: 'user_id'
+        })
 
       if (error) throw error
 
       setSuccess("Perfil atualizado com sucesso!")
+      await fetchProfile()
     } catch (error: any) {
       setError(error.message)
     } finally {
