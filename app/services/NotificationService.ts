@@ -25,8 +25,27 @@ export class NotificationService {
       complete: '/sounds/complete.wav'
     }
 
-    const audio = new Audio(sounds[soundType])
-    audio.volume = 0.5
-    audio.play().catch(error => console.error('Erro ao tocar som:', error))
+    try {
+      const audio = new Audio(sounds[soundType])
+      audio.volume = 0.5
+      
+      // Força o carregamento do áudio
+      audio.load()
+      
+      // Promessa para garantir que o som tocou
+      const playPromise = audio.play()
+      
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            console.log('Som tocado com sucesso')
+          })
+          .catch(error => {
+            console.error('Erro ao tocar som:', error)
+          })
+      }
+    } catch (error) {
+      console.error('Erro ao criar áudio:', error)
+    }
   }
 } 
