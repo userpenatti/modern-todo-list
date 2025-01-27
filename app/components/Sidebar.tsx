@@ -25,46 +25,15 @@ export default function Sidebar({ todos, filter, setFilter }: SidebarProps) {
   const [isOpen, setIsOpen] = useState(true)
   const completedTasks = todos.filter((todo) => todo.completed).length
   const totalTasks = todos.length
-  const { user } = useAuth()
-  const router = useRouter()
-
-  console.log("User data:", user)
 
   return (
     <div className="relative">
-      <div
-        className={cn(
-          "h-screen bg-gray-100 transition-all duration-300 ease-in-out",
-          isOpen ? "w-64" : "w-0"
-        )}
-      >
+      <div className={cn("h-screen bg-gray-100 transition-all duration-300 ease-in-out",
+        isOpen ? "w-64" : "w-0"
+      )}>
         <div className={cn("p-4 flex flex-col h-full", !isOpen && "hidden")}>
           <div className="flex items-center justify-between mb-6 bg-white rounded-lg p-2">
             <h2 className="text-xl font-bold">{strings.app.titulo}</h2>
-            {user ? (
-              <Button
-                variant="ghost"
-                size="icon"
-                className="rounded-full hover:bg-gray-100"
-                onClick={() => router.push('/profile')}
-              >
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src={user.user_metadata?.avatar_url} alt="Profile" />
-                  <AvatarFallback className="bg-primary/10">
-                    <User className="h-4 w-4" />
-                  </AvatarFallback>
-                </Avatar>
-              </Button>
-            ) : (
-              <Button
-                variant="ghost"
-                size="icon"
-                className="rounded-full hover:bg-gray-100"
-                onClick={() => router.push('/profile')}
-              >
-                <User className="h-4 w-4" />
-              </Button>
-            )}
           </div>
 
           <nav className="mb-4">

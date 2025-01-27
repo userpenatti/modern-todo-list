@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { v4 as uuidv4 } from "uuid"
-import { Plus, List, Columns } from "lucide-react"
+import { Plus, List, Columns, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import TodoItem from "./TodoItem"
@@ -12,6 +12,7 @@ import KanbanBoard from "./KanbanBoard"
 import type { Todo } from "../types/todo"
 import strings from "../constants/strings"
 import { supabase } from "../lib/supabase"
+import { useRouter } from "next/navigation"
 
 export default function TodoList({ userId }: { userId: string }) {
   const [todos, setTodos] = useState<Todo[]>([])
@@ -23,6 +24,7 @@ export default function TodoList({ userId }: { userId: string }) {
     status: "all",
   })
   const [view, setView] = useState<"list" | "kanban">("list")
+  const router = useRouter()
 
   useEffect(() => {
     fetchTodos()
@@ -113,6 +115,14 @@ export default function TodoList({ userId }: { userId: string }) {
               </Button>
               <Button onClick={() => setIsAddModalOpen(true)}>
                 <Plus className="mr-2 h-4 w-4" /> {strings.app.adicionarTarefa}
+              </Button>
+              <Button 
+                variant="outline" 
+                size="icon" 
+                onClick={() => router.push('/profile')} 
+                title={strings.profile.title}
+              >
+                <User className="h-4 w-4" />
               </Button>
             </div>
           </div>

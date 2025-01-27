@@ -4,45 +4,37 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { CheckSquare } from "lucide-react"
-import strings from "../constants/strings"
-import { signIn } from "../lib/supabase"
 import { supabase } from "../lib/supabase"
+import strings from "../constants/strings"
 
-export default function Login() {
-  const [email, setEmail] = useState("")
+export default function ResetPassword() {
   const [password, setPassword] = useState("")
+  const [confirmPassword, setConfirmPassword] = useState("")
   const [error, setError] = useState("")
+  const [success, setSuccess] = useState(false)
   const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
 
-    const { data, error } = await signIn(email, password)
-    if (error) {
-      setError(error.message)
-    } else {
-      router.push("/")
-    }
-  }
-
-  const handleForgotPassword = async () => {
-    if (!email) {
-      setError("Por favor, insira seu e-mail para redefinir a senha")
+    if (password !== confirmPassword) {
+      setError("As senhas não coincidem")
       return
     }
 
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`,
-      })
-
+      const { error } = await supabase.auth.updateUser({ password })
+      
       if (error) throw error
 
-      alert(strings.auth.resetPasswordSuccess)
+      setSuccess(true)
+      setTimeout(() => {
+        router.push("/login")
+      }, 2000)
     } catch (error: any) {
       setError(error.message)
     }
@@ -53,32 +45,30 @@ export default function Login() {
       <div className="flex flex-col items-center mb-8">
         <CheckSquare className="h-16 w-16 text-purple-600 mb-4" />
         <h1 className="text-3xl font-bold text-gray-800">{strings.app.titulo}</h1>
-        <p className="text-gray-600 mt-2">Organize suas tarefas de forma eficiente</p>
+        <p className="text-gray-600 mt-2">{strings.auth.resetPassword}</p>
       </div>
-      
+
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle className="text-center">{strings.auth.login}</CardTitle>
+          <CardTitle className="text-center">{strings.auth.resetPassword}</CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Input
-                id="email"
-                placeholder={strings.auth.email}
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                type="password"
+                placeholder={strings.auth.password}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 required
               />
             </div>
             <div className="space-y-2">
               <Input
-                id="password"
-                placeholder={strings.auth.password}
                 type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                placeholder={strings.auth.confirmPassword}
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
                 required
               />
             </div>
@@ -87,21 +77,17 @@ export default function Login() {
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
+            {success && (
+              <Alert>
+                <AlertDescription>{strings.auth.resetPasswordSuccess}</AlertDescription>
+              </Alert>
+            )}
             <Button className="w-full" type="submit">
-              {strings.auth.signIn}
+              {strings.auth.resetPassword}
             </Button>
           </form>
         </CardContent>
-        <CardFooter className="flex flex-col space-y-2">
-          <Button variant="link" onClick={handleForgotPassword}>
-            {strings.auth.forgotPassword}
-          </Button>
-          <Button variant="link" onClick={() => router.push("/register")}>
-            {strings.auth.noAccount} {strings.auth.signUp}
-          </Button>
-        </CardFooter>
       </Card>
     </div>
   )
-}
-
+} 

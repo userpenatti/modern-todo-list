@@ -57,7 +57,7 @@ const strings = {
     email: "E-mail",
     password: "Senha",
     confirmPassword: "Confirmar Senha",
-    forgotPassword: "Esqueceu a senha?",
+    forgotPassword: "Esqueceu sua senha?",
     noAccount: "Não tem uma conta?",
     alreadyHaveAccount: "Já tem uma conta?",
     signUp: "Cadastre-se",
@@ -66,6 +66,9 @@ const strings = {
     emailSent: "E-mail de confirmação enviado",
     checkEmail: "Verifique seu e-mail para confirmar sua conta",
     invalidCredentials: "E-mail ou senha inválidos",
+    resetPassword: "Redefinir Senha",
+    resetPasswordSuccess: "E-mail de redefinição enviado com sucesso!",
+    resetPasswordError: "Erro ao enviar e-mail de redefinição",
   },
   profile: {
     title: "Perfil",
