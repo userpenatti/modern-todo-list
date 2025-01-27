@@ -31,9 +31,7 @@ export function useNotifications(todos: any[]) {
           NotificationService.showNotification(
             `Lembrete: ${todo.title}`,
             {
-              body: `A tarefa "${todo.title}" vence em ${todo.notifyBefore} minutos!`,
-              icon: '/icon.png',
-              badge: '/badge.png'
+              body: `A tarefa "${todo.title}" vence em ${todo.notifyBefore} minutos!`
             }
           )
           
