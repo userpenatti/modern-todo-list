@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { Home, BarChart2, ChevronLeft, ChevronRight, User } from "lucide-react"
+import { Home, BarChart2, ChevronLeft, ChevronRight, User, HelpCircle } from "lucide-react"
 import FilterBar from "./FilterBar"
 import UserProfileSection from "./UserProfileSection"
 import type { Todo } from "../types/todo"
@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import HelpModal from "./HelpModal"
 
 interface SidebarProps {
   todos: Todo[]
@@ -23,6 +24,7 @@ interface SidebarProps {
 
 export default function Sidebar({ todos, filter, setFilter }: SidebarProps) {
   const [isOpen, setIsOpen] = useState(true)
+  const [isHelpOpen, setIsHelpOpen] = useState(false)
   const completedTasks = todos.filter((todo) => todo.completed).length
   const totalTasks = todos.length
 
@@ -67,6 +69,24 @@ export default function Sidebar({ todos, filter, setFilter }: SidebarProps) {
       >
         {isOpen ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
       </Button>
+
+      {/* Botão de ajuda no final da sidebar */}
+      <div className="absolute bottom-4 left-4 opacity-50 hover:opacity-100 transition-opacity">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setIsHelpOpen(true)}
+          className="h-8 w-8"
+          title="Ajuda"
+        >
+          <HelpCircle className="h-4 w-4" />
+        </Button>
+      </div>
+
+      <HelpModal 
+        isOpen={isHelpOpen}
+        onClose={() => setIsHelpOpen(false)}
+      />
     </div>
   )
 }
