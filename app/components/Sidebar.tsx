@@ -32,7 +32,7 @@ export default function Sidebar({ todos, filter, setFilter }: SidebarProps) {
         isOpen ? "w-64" : "w-0"
       )}>
         <div className={cn("p-4 flex flex-col h-full", !isOpen && "hidden")}>
-          <div className="flex items-center justify-between mb-6 bg-white rounded-lg p-2">
+          <div className="flex items-center justify-between mb-6 rounded-lg p-2">
             <h2 className="text-xl font-bold">{strings.app.titulo}</h2>
           </div>
 
