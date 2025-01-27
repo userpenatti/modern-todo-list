@@ -57,13 +57,26 @@ export default function Sidebar({ todos, filter, setFilter }: SidebarProps) {
               </Button>
             ) : (
               <Button
-                variant="ghost"
-                size="icon"
-                className="rounded-full hover:bg-gray-100"
-                onClick={() => router.push('/login')}
-              >
-                <User className="h-4 w-4" />
-              </Button>
+  variant="ghost"
+  size="icon"
+  className="rounded-full hover:bg-gray-100"
+  onClick={() => {
+    console.log("Botão clicado. Usuário autenticado:", user);
+    if (user) {
+      router.push('/profile'); // Redireciona para o perfil
+    } else {
+      router.push('/login'); // Redireciona para login
+    }
+  }}
+>
+  <Avatar className="h-8 w-8">
+    <AvatarImage src={user?.user_metadata?.avatar_url} alt="Profile" />
+    <AvatarFallback className="bg-primary/10">
+      <User className="h-4 w-4" />
+    </AvatarFallback>
+  </Avatar>
+</Button>
+
             )}
           </div>
 
