@@ -124,20 +124,6 @@ export default function AddTodoModal({ isOpen, onClose, addTodo }: AddTodoModalP
             />
           </div>
           <div>
-            <Label htmlFor="category">Categoria</Label>
-            <Select value={category} onValueChange={(value: Category) => setCategory(value)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Categoria" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="personal">Pessoal</SelectItem>
-                <SelectItem value="work">Trabalho</SelectItem>
-                <SelectItem value="shopping">Compras</SelectItem>
-                <SelectItem value="other">Outro</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div>
             <Label htmlFor="priority">Prioridade</Label>
             <Select value={priority} onValueChange={(value: Priority) => setPriority(value)}>
               <SelectTrigger>
@@ -159,30 +145,6 @@ export default function AddTodoModal({ isOpen, onClose, addTodo }: AddTodoModalP
               onChange={(e) => setDueDate(e.target.value)}
               required
             />
-          </div>
-          <div>
-            <Label htmlFor="dueTime">Hora de Vencimento</Label>
-            <Input
-              id="dueTime"
-              type="time"
-              value={dueTime}
-              onChange={(e) => setDueTime(e.target.value)}
-              required
-            />
-          </div>
-          <div>
-            <Label htmlFor="recurrence">Recorrência</Label>
-            <Select value={recurrence} onValueChange={(value: string) => setRecurrence(value)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Recorrência" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">Nenhuma</SelectItem>
-                <SelectItem value="daily">Diária</SelectItem>
-                <SelectItem value="weekly">Semanal</SelectItem>
-                <SelectItem value="monthly">Mensal</SelectItem>
-              </SelectContent>
-            </Select>
           </div>
           <Button type="submit">Adicionar Tarefa</Button>
         </form>
