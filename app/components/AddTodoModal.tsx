@@ -24,28 +24,105 @@ export default function AddTodoModal({ isOpen, onClose, addTodo }: AddTodoModalP
   const [priority, setPriority] = useState<Priority>("medium")
   const [dueDate, setDueDate] = useState("")
   const [dueTime, setDueTime] = useState("")
+  const [recurrence, setRecurrence] = useState<string>("none");
   const [showError, setShowError] = useState(false)
+  const [quickAddOpen, setQuickAddOpen] = useState(false)
+  const [attachments, setAttachments] = useState<File[]>([])
 
   // Declarar a variável timeoutIds
   const timeoutIds: number[] = [];
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    
-    if (!dueDate || !dueTime) {
-      setShowError(true)
-      return
+  useEffect(() => {
+    if (Notification.permission !== "granted") {
+      Notification.requestPermission();
+    }
+  }, []);
+
+
+  const handleQuickAdd = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!title || !dueDate) {
+      setShowError(true);
+      return;
     }
 
-    const dueDatetime = new Date(`${dueDate}T${dueTime}`)
-    
-    // Armazenar os IDs dos timeouts no localStorage para persistência
-    const storedNotifications = JSON.parse(localStorage.getItem('taskNotifications') || '{}')
-    storedNotifications[title] = {
-      timeoutIds,
-      dueDate: dueDatetime.toISOString()
+    const dueDatetime = new Date(dueDate);
+
+    addTodo({
+      title,
+      description: "",
+      category: "personal",
+      priority: "medium",
+      dueDate: dueDatetime.toISOString(),
+      completed: false,
+      createdAt: new Date().toISOString(),
+      status: "todo",
+      attachments: []
+    });
+
+    scheduleNotification(title, dueDatetime);
+
+    setTitle("");
+    setDueDate("");
+    setShowError(false);
+    onClose();
+  };
+
+  const scheduleNotification = (title: string, dueDate: Date) => {
+    const now = new Date();
+    const timeUntilDue = dueDate.getTime() - now.getTime();
+  
+    if (timeUntilDue > 0) {
+      setTimeout(() => {
+        new Notification("Lembrete de Tarefa", {
+          body: `A tarefa "${title}" está próxima do vencimento.`,
+        });
+      }, timeUntilDue);
     }
-    localStorage.setItem('taskNotifications', JSON.stringify(storedNotifications))
+  };
+
+  const scheduleRecurringTask = (title: string, dueDate: Date, recurrence: string) => {
+    let interval: number;
+
+    switch (recurrence) {
+      case "daily":
+        interval = 24 * 60 * 60 * 1000; // 1 dia
+        break;
+      case "weekly":
+        interval = 7 * 24 * 60 * 60 * 1000; // 1 semana
+        break;
+      case "monthly":
+        interval = 30 * 24 * 60 * 60 * 1000; // 1 mês (aproximado)
+        break;
+      default:
+        return;
+    }
+
+    setInterval(() => {
+      addTodo({
+        title,
+        description: "",
+        category: "personal",
+        priority: "medium",
+        dueDate: new Date(dueDate.getTime() + interval).toISOString(),
+        createdAt: new Date().toISOString(),
+        completed: false,
+        status: "todo",
+        attachments
+      });
+    }, interval);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!dueDate || !dueTime) {
+      setShowError(true);
+      return;
+    }
+
+    const dueDatetime = new Date(`${dueDate}T${dueTime}`);
 
     addTodo({
       title,
@@ -56,16 +133,29 @@ export default function AddTodoModal({ isOpen, onClose, addTodo }: AddTodoModalP
       completed: false,
       createdAt: new Date().toISOString(),
       status: "todo",
-    })
-    
-    setTitle("")
-    setDescription("")
-    setCategory("personal")
-    setPriority("medium")
-    setDueDate("")
-    setDueTime("")
-    setShowError(false)
-  }
+      attachments,
+    });
+
+    scheduleNotification(title, dueDatetime);
+    scheduleRecurringTask(title, dueDatetime, recurrence);
+
+    setTitle("");
+    setDescription("");
+    setCategory("personal");
+    setPriority("medium");
+    setDueDate("");
+    setDueTime("");
+    setRecurrence("none");
+    setAttachments([]);
+    setShowError(false);
+    onClose();
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      setAttachments(Array.from(e.target.files));
+    }
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -76,9 +166,7 @@ export default function AddTodoModal({ isOpen, onClose, addTodo }: AddTodoModalP
         <form onSubmit={handleSubmit} className="space-y-4">
           {showError && (
             <Alert variant="destructive">
-              <AlertDescription>
-                Por favor, preencha a data de vencimento
-              </AlertDescription>
+              <AlertDescription>Por favor, preencha todos os campos</AlertDescription>
             </Alert>
           )}
           <div>
@@ -147,11 +235,32 @@ export default function AddTodoModal({ isOpen, onClose, addTodo }: AddTodoModalP
               required
             />
           </div>
+          <div>
+            <Label htmlFor="recurrence">Recorrência</Label>
+            <Select value={recurrence} onValueChange={(value: string) => setRecurrence(value)}>
+              <SelectTrigger>
+                <SelectValue placeholder="Recorrência" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Nenhuma</SelectItem>
+                <SelectItem value="daily">Diária</SelectItem>
+                <SelectItem value="weekly">Semanal</SelectItem>
+                <SelectItem value="monthly">Mensal</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label htmlFor="attachments">Anexos</Label>
+            <Input
+              id="attachments"
+              type="file"
+              multiple
+              onChange={handleFileChange}
+            />
+          </div>
           <Button type="submit">Adicionar Tarefa</Button>
         </form>
       </DialogContent>
     </Dialog>
-  )
+  );
 }
-
-console.log('Environment:', process.env.NODE_ENV);

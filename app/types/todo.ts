@@ -12,17 +12,16 @@ export interface Subtask {
 }
 
 export interface Todo {
-  id: string
-  title: string
-  description: string
-  category: Category
-  priority: Priority
-  dueDate: string
-  completed: boolean
-  createdAt: string
-  status: Status
-  user_id: string
-  notifyBefore?: number
-  subtasks?: Subtask[]
+  id: string;
+  user_id: string;
+  title: string;
+  description: string;
+  category: Category;
+  priority: Priority;
+  dueDate: string;
+  completed: boolean;
+  createdAt: string;
+  status: Status; // Alterado para usar o tipo Status
+  attachments: File[];
 }
 
