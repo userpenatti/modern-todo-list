@@ -11,15 +11,14 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import HelpModal from "./HelpModal"
+import React from "react"
+import { FaHome, FaTasks, FaCalendarAlt, FaCog } from "react-icons/fa"
+import { Filter } from "../types/filter"
 
 interface SidebarProps {
   todos: Todo[]
-  filter: {
-    category: string
-    priority: string
-    status: string
-  }
-  setFilter: (filter: any) => void
+  filter: Filter
+  setFilter: (filter: Filter) => void
 }
 
 export default function Sidebar({ todos, filter, setFilter }: SidebarProps) {
