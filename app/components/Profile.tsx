@@ -4,8 +4,18 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
-import strings from "../constants/strings"
 import { getCurrentUser, signOut, supabase } from "../lib/supabase"
+
+const strings = {
+  profile: {
+    title: "Profile",
+    email: "Email",
+    name: "Name"
+  },
+  auth: {
+    logout: "Logout"
+  }
+}
 
 export default function Profile() {
   const [user, setUser] = useState<any>(null)
@@ -38,7 +48,7 @@ export default function Profile() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-purple-100 to-purple-300">
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br">
         <Card className="w-full max-w-md">
           <CardHeader>
             <CardTitle>{strings.profile.title}</CardTitle>

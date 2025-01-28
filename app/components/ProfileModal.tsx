@@ -7,7 +7,6 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { User } from "lucide-react"
-import strings from "../constants/strings"
 import { signOut, supabase } from "../lib/supabase"
 import { useRouter } from "next/navigation"
 

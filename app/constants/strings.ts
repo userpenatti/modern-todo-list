@@ -1,46 +1,60 @@
+
 const strings = {
+
   app: {
-    titulo: "Título do App",
+
+    titulo: "Título",
+
     inicio: "Início",
+
     estatisticas: "Estatísticas",
+
     estatisticasRapidas: "Estatísticas Rápidas",
+
     concluidas: "Concluídas",
+
     filtros: "Filtros",
+
     adicionarTarefa: "Adicionar Tarefa",
+
     editarTarefa: "Editar Tarefa",
+
     salvar: "Salvar",
-    visualizacaoLista: "Visualização em Lista",
-    visualizacaoKanban: "Visualização em Kanban",
+
+    visualizacaoLista: "Visualização Lista",
+
+    visualizacaoKanban: "Visualização Kanban",
+
   },
+
   tarefa: {
-    novaTarefa: "Nova Tarefa",
-    editarTarefa: "Editar Tarefa",
-    excluirTarefa: "Excluir Tarefa",
-    descricao: "Descrição",
-    categoria: "Categoria",
-    prioridade: "Prioridade",
-    dataConclusao: "Data de Conclusão",
-    adicionar: "Adicionar",
-    salvar: "Salvar",
-    cancelar: "Cancelar",
+
+    // other properties
+
   },
+
   categorias: {
-    todas: "Todas",
-    trabalho: "Trabalho",
-    pessoal: "Pessoal",
-    urgente: "Urgente",
+
+    // other properties
+
   },
+
   auth: {
-    login: "Login",
-    email: "Email",
-    password: "Senha",
-    signIn: "Entrar",
-    forgotPassword: "Esqueceu a senha?",
-    noAccount: "Não tem uma conta?",
-    signUp: "Cadastre-se",
-    resetPasswordSuccess: "Um link para redefinir sua senha foi enviado para seu e-mail.",
+
+    // other properties
+
   },
+
+  profile: {
+
+    title: "Perfil",
+
+    email: "Email",
+
+    name: "Nome",
+
+    logout: "Sair"
+
+  }
+
 }
-
-export default strings
-
