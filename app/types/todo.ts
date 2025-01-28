@@ -21,7 +21,6 @@ export interface Todo {
   dueDate: string;
   completed: boolean;
   createdAt: string;
-  status: Status; // Alterado para usar o tipo Status
-  attachments: File[];
+  status: Status;
 }
 

@@ -1,4 +1,3 @@
-// AddTodoModal.tsx
 import { useState, useEffect } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
@@ -27,60 +26,8 @@ export default function AddTodoModal({ isOpen, onClose, addTodo }: AddTodoModalP
   const [recurrence, setRecurrence] = useState<string>("none");
   const [showError, setShowError] = useState(false)
   const [quickAddOpen, setQuickAddOpen] = useState(false)
-  const [attachments, setAttachments] = useState<File[]>([])
 
-  // Declarar a variável timeoutIds
-  const timeoutIds: number[] = [];
-
-  useEffect(() => {
-    if (Notification.permission !== "granted") {
-      Notification.requestPermission();
-    }
-  }, []);
-
-
-  const handleQuickAdd = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!title || !dueDate) {
-      setShowError(true);
-      return;
-    }
-
-    const dueDatetime = new Date(dueDate);
-
-    addTodo({
-      title,
-      description: "",
-      category: "personal",
-      priority: "medium",
-      dueDate: dueDatetime.toISOString(),
-      completed: false,
-      createdAt: new Date().toISOString(),
-      status: "todo",
-      attachments: []
-    });
-
-    scheduleNotification(title, dueDatetime);
-
-    setTitle("");
-    setDueDate("");
-    setShowError(false);
-    onClose();
-  };
-
-  const scheduleNotification = (title: string, dueDate: Date) => {
-    const now = new Date();
-    const timeUntilDue = dueDate.getTime() - now.getTime();
-  
-    if (timeUntilDue > 0) {
-      setTimeout(() => {
-        new Notification("Lembrete de Tarefa", {
-          body: `A tarefa "${title}" está próxima do vencimento.`,
-        });
-      }, timeUntilDue);
-    }
-  };
+  // Remover useEffect e timeoutIds se não estiver usando notificações
 
   const scheduleRecurringTask = (title: string, dueDate: Date, recurrence: string) => {
     let interval: number;
@@ -108,8 +55,7 @@ export default function AddTodoModal({ isOpen, onClose, addTodo }: AddTodoModalP
         dueDate: new Date(dueDate.getTime() + interval).toISOString(),
         createdAt: new Date().toISOString(),
         completed: false,
-        status: "todo",
-        attachments
+        status: "todo"
       });
     }, interval);
   };
@@ -132,12 +78,8 @@ export default function AddTodoModal({ isOpen, onClose, addTodo }: AddTodoModalP
       dueDate: dueDatetime.toISOString(),
       completed: false,
       createdAt: new Date().toISOString(),
-      status: "todo",
-      attachments,
+      status: "todo"
     });
-
-    scheduleNotification(title, dueDatetime);
-    scheduleRecurringTask(title, dueDatetime, recurrence);
 
     setTitle("");
     setDescription("");
@@ -146,15 +88,8 @@ export default function AddTodoModal({ isOpen, onClose, addTodo }: AddTodoModalP
     setDueDate("");
     setDueTime("");
     setRecurrence("none");
-    setAttachments([]);
     setShowError(false);
     onClose();
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      setAttachments(Array.from(e.target.files));
-    }
   };
 
   return (
@@ -248,15 +183,6 @@ export default function AddTodoModal({ isOpen, onClose, addTodo }: AddTodoModalP
                 <SelectItem value="monthly">Mensal</SelectItem>
               </SelectContent>
             </Select>
-          </div>
-          <div>
-            <Label htmlFor="attachments">Anexos</Label>
-            <Input
-              id="attachments"
-              type="file"
-              multiple
-              onChange={handleFileChange}
-            />
           </div>
           <Button type="submit">Adicionar Tarefa</Button>
         </form>
