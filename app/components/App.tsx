@@ -1,5 +1,4 @@
 import React, { useState, useEffect, createContext, useContext } from "react";
-import { FaSun, FaMoon } from "react-icons/fa";
 import AddTodoModal from "./AddTodoModal";
 import Sidebar from "./Sidebar";
 import "../styles/theme.css";
@@ -28,11 +27,8 @@ const App = () => {
   return (
     <ThemeContext.Provider value={{ theme, toggleTheme }}>
       <div className="app-container">
-        <Sidebar todos={[]} filter={filter} setFilter={setFilter} />
+        <Sidebar filter={filter} setFilter={setFilter} completedTasks={0} totalTasks={0} />
         <div className="main-content">
-          <button onClick={toggleTheme} className="theme-toggle-button">
-            {theme === "light" ? <FaMoon /> : <FaSun />}
-          </button>
           <AddTodoModal isOpen={true} onClose={() => {}} addTodo={() => {}} />
         </div>
       </div>

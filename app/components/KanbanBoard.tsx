@@ -5,96 +5,70 @@ import type { Todo } from "../types/todo"
 import strings from "../constants/strings"
 import { Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import React from "react"
 
-interface KanbanBoardProps {
-  todos: Todo[]
-  updateTodo: (todo: Todo) => void
-  deleteTodo: (id: string) => void
-  onAddTodo: () => void
+interface Task {
+  id: string;
+  title: string;
+  status: 'todo' | 'doing' | 'done';
 }
 
-export default function KanbanBoard({ todos, updateTodo, deleteTodo, onAddTodo }: KanbanBoardProps) {
-  const columns = [
-    { id: "todo", title: strings.kanban.aFazer },
-    { id: "inProgress", title: strings.kanban.emAndamento },
-    { id: "done", title: strings.kanban.concluidas },
-  ]
+interface KanbanBoardProps {
+  tasks: Task[];
+  onTaskMove: (taskId: string, destination: string) => void;
+}
 
-  const onDragEnd = (result: DropResult) => {
-    const { destination, source, draggableId } = result
+const KanbanBoard: React.FC<KanbanBoardProps> = ({ tasks, onTaskMove }) => {
+  const columns = {
+    todo: tasks.filter(task => task.status === 'todo'),
+    doing: tasks.filter(task => task.status === 'doing'),
+    done: tasks.filter(task => task.status === 'done')
+  };
 
-    if (!destination) {
-      return
-    }
-
-    if (destination.droppableId === source.droppableId && destination.index === source.index) {
-      return
-    }
-
-    const todo = todos.find((t) => t.id === draggableId)
-    if (!todo) return
-
-    let newStatus: "todo" | "inProgress" | "done"
-    switch (destination.droppableId) {
-      case "inProgress":
-        newStatus = "inProgress"
-        break
-      case "done":
-        newStatus = "done"
-        break
-      default:
-        newStatus = "todo"
-    }
-
-    updateTodo({ ...todo, status: newStatus, completed: newStatus === "done" })
-  }
+  const onDragEnd = (result: any) => {
+    if (!result.destination) return;
+    
+    const { draggableId, destination } = result;
+    onTaskMove(draggableId, destination.droppableId);
+  };
 
   return (
     <DragDropContext onDragEnd={onDragEnd}>
-      <div className="flex gap-4 overflow-x-auto pb-4">
-        {columns.map((column) => (
-          <div key={column.id} className="flex-1 min-w-[300px]">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle>{column.title}</CardTitle>
-                {(column.id === "todo" || column.id === "inProgress") && (
-                  <Button variant="ghost" size="icon" onClick={onAddTodo}>
-                    <Plus className="h-4 w-4" />
-                  </Button>
-                )}
-              </CardHeader>
-              <Droppable droppableId={column.id}>
-                {(provided) => (
-                  <CardContent {...provided.droppableProps} ref={provided.innerRef} className="min-h-[200px]">
-                    {todos
-                      .filter((todo) => {
-                        if (column.id === "done") return todo.completed
-                        if (column.id === "inProgress") return !todo.completed && todo.status === "inProgress"
-                        return !todo.completed && (!todo.status || todo.status === "todo")
-                      })
-                      .map((todo, index) => (
-                        <Draggable key={todo.id} draggableId={todo.id} index={index}>
-                          {(provided) => (
-                            <div
-                              ref={provided.innerRef}
-                              {...provided.draggableProps}
-                              {...provided.dragHandleProps}
-                              className="mb-2"
-                            >
-                              <TodoItem todo={todo} updateTodo={updateTodo} deleteTodo={deleteTodo} />
-                            </div>
-                          )}
-                        </Draggable>
-                      ))}
-                    {provided.placeholder}
-                  </CardContent>
-                )}
-              </Droppable>
-            </Card>
+      <div className="flex gap-4 p-4">
+        {Object.entries(columns).map(([columnId, columnTasks]) => (
+          <div key={columnId} className="bg-gray-100 p-4 rounded-lg w-80">
+            <h2 className="text-lg font-semibold mb-4 capitalize">{columnId}</h2>
+            <Droppable droppableId={columnId}>
+              {(provided) => (
+                <div
+                  ref={provided.innerRef}
+                  {...provided.droppableProps}
+                  className="min-h-[200px]"
+                >
+                  {columnTasks.map((task, index) => (
+                    <Draggable key={task.id} draggableId={task.id} index={index}>
+                      {(provided) => (
+                        <div
+                          ref={provided.innerRef}
+                          {...provided.draggableProps}
+                          {...provided.dragHandleProps}
+                          className="bg-white p-3 rounded mb-2 shadow"
+                        >
+                          {task.title}
+                        </div>
+                      )}
+                    </Draggable>
+                  ))}
+                  {provided.placeholder}
+                </div>
+              )}
+            </Droppable>
           </div>
         ))}
       </div>
     </DragDropContext>
-  )
-}
+  );
+};
+
+export default KanbanBoard;
 

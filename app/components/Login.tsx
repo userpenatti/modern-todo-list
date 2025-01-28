@@ -1,5 +1,4 @@
 "use client"
-
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -10,6 +9,7 @@ import { CheckSquare } from "lucide-react"
 import strings from "../constants/strings"
 import { signIn } from "../lib/supabase"
 import { supabase } from "../lib/supabase"
+import React from "react"
 
 export default function Login() {
   const [email, setEmail] = useState("")

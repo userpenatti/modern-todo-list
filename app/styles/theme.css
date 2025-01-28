@@ -1,26 +1,34 @@
 body.light {
-    --background-color: #ffffff;
-    --text-color: #000000;
-  }
-  
-  body.dark {
-    --background-color: #000000;
-    --text-color: #ffffff;
-  }
-  
-  body {
-    background-color: var(--background-color);
-    color: var(--text-color);
-    transition: background-color 0.3s, color 0.3s;
-  }
-  
-  .theme-toggle-button {
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-size: 1.5rem;
-    position: fixed;
-    top: 1rem;
-    right: 1rem;
-    color: var(--text-color);
-  }
+  --background-color: #ffffff;
+  --text-color: #000000;
+}
+
+body.dark {
+  --background-color: #000000;
+  --text-color: #ffffff;
+}
+
+body {
+  background-color: var(--background-color);
+  color: var(--text-color);
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.theme-toggle-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.5rem;
+  margin-left: 1rem;
+  color: var(--text-color);
+}
+
+/* Estilos adicionais para o layout principal */
+.app-container {
+  display: flex;
+}
+
+.main-content {
+  flex: 1;
+  padding: 2rem;
+}
